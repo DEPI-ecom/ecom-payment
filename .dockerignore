@@ -1,5 +1,13 @@
+
 node_modules
-.env
+npm-debug.log*
 .git
+.gitignore
+.env
+.env.*
 coverage
-*.log
+tests
+*.md
+Dockerfile
+.dockerignore
+vitest.config.js

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { requireCustomerToken } from '../middleware/auth.middleware.js';
-import { mockPayment } from '../controllers/payment.controller.js';
+import { createMockPayment } from '../controllers/payment.controller.js';
 
+// Internal only: called by ecom-order. Do not expose through the API gateway.
 const router = Router();
-router.post('/mock', requireCustomerToken, mockPayment);
+router.post('/mock', createMockPayment);
 export default router;
