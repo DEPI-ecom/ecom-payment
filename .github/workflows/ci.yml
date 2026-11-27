@@ -1,0 +1,43 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.12-alpine
+        env:
+          POSTGRES_USER: marketly
+          POSTGRES_PASSWORD: marketly_dev_password
+          POSTGRES_DB: payments_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U marketly -d payments_db"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://marketly:marketly_dev_password@localhost:5432/payments_db?schema=public
+      JWT_SECRET: ci-only-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - name: Test
+        run: |
+          if find . -path ./node_modules -prune -o \( -name '*.test.*' -o -name '*.spec.*' \) -print | grep -q .; then
+            npm test --if-present
+          else
+            echo "No tests yet"
+          fi
+      - name: Build image
+        if: hashFiles('Dockerfile') != ''
+        run: docker build -t ecom-payment:ci .
