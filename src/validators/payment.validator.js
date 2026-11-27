@@ -1,9 +1,10 @@
 import { z } from 'zod';
-
+// User ids come from the User service, which generates cuids, so a UUID check would reject every real user.
+const externalIdSchema = z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/, 'Invalid id');
 // Unknown fields (for example card details) are stripped by zod and never reach the service.
 export const mockPaymentSchema = z.object({
   orderId: z.string().uuid(),
-  userId: z.string().uuid(),
+  userId: externalIdSchema,
   amount: z.string()
     .regex(/^\d+(\.\d{1,2})?$/, 'Must be a decimal string with at most 2 decimal places')
     .refine((value) => Number(value) > 0, 'Must be greater than zero'),
